@@ -82,7 +82,7 @@ The following design aspects shall guarantee that the browser does not leak priv
 In addition to the browser UI controls of TURTLEDOVE, this approach would enable the following additional controls:
 * The browser could provide a mean to see the profile data that is collected by a given advertiser. GDPR/CCPA access requests could simply amount to reading this storage using a UI control in the browser (provided the profile contains all the data collected by the advertiser).
 * The audience definition scripts could also be inspected by the user. This has the advantage that users have a mean to understand *how* they got attributed to an audience. Maybe this could be useful to discover problematic targeting practices (for example political targeting campaigns). On the other hand, we believe that advertisers have the right to keep their targeting technologies proprietary. However, this could be constrained to the partial profiles that are computed from one origin only (from first-party data, where the heavy lifting is happening).
-* The user shall be able to delete audience memberships using a UI control. This would be achieve by removing/blocking the audience definitions. In addition, advertiser can also remove audience definitions using a method `privateStorage.removeAudienceDefinition`. (this is similar to )
+* The user shall be able to delete audience memberships using a UI control. This can be achieved by removing/blocking the audience definitions. In addition, advertiser can also remove audience definitions using a method `privateStorage.removeAudienceDefinition` (this is similar to TURTLEDOVE).
 * The user shall be able to delete/block the private storage for an advertiser that he/she does not trust.
 
 ## Compatibility with other proposals
