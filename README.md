@@ -1,77 +1,90 @@
-# Dove generalization
+# Turtledove and First-party-sets generalization
 
-We propose to generalize [TURTLEDOVE](https://github.com/WICG/turtledove) to enable full profile based targeting while remaining compliant with the chromium privacy model. More precisely, the goal is to be able to target users based on deterministic behavioral data collected in the browser and across origins while preserving privacy.
+We propose to generalize [Turtledove](https://github.com/WICG/turtledove) and [First-party-sets]() to enable full profile based targeting while remaining compliant with the chromium privacy model. More precisely, the goal is to be able to target users based on deterministic behavioral data collected in the browser and across domains and parties while preserving privacy.
 
-## The capabilities of TURTLEDOVE
-In a nutshell, the TURTLEDOVE framework consists of the following steps to show a targeted ad:
-* Interests groups (aka audiences or segments) are computed based on first-party data only (from one origin).
-These interest groups are collected in the browser. Only the browser has a *cross-origin* overview on the interest groups a user belongs to.
+## The capabilities of Turtledove
+In a nutshell, the Turtledove framework consists of the following steps to show a targeted ad:
+* Interests groups (aka audiences or segments) are computed based on first-party data only (from one domain).
+These interest groups are collected in the browser. Only the browser has a *cross-domain* overview on the interest groups a user belongs to.
 * The browser retrieves ad bundles (implemented as web bundles) from ad servers using two types of requests that are kept uncorrelated (for privacy reasons). One request type retrieves bundles for the context of the page (contextual targeting). The other request type retrieves an ad bundle for the collected interests groups. Each bundle also includes a bid.
 * An in-browser auction occurs to select the ad to show.
 
-From our perspective, the TURTLEDOVE approach is well suited to target users for the following types of targeting:
+From our perspective, the Turtledove approach is well suited to target users for the following types of targeting:
 * Contextual targeting. This is simply achieved by using a contextual request as described in the explainer.
 * Intent based targeting (based on specific user actions) using an interest group like "hit-paywall-twice". This also includes re-targeting using an interest group like "looked-at-shoes-xyz".
-* Limited profile based targeting. Interest groups can be used to profile users using data observed on one origin only. As described in the explainer, this could be achieved using an interest group like "athletic-shoes". This proposal aims at alleviating the per-origin restriction of interest groups.
+* Limited profile based targeting. Interest groups can be used to profile users using data observed on one domain only. As described in the explainer, this could be achieved using an interest group like "athletic-shoes". This proposal aims at alleviating the per-domain restriction of interest groups.
 
-Since interest groups can be computed using data of only one origin, the semantics of these groups are necessarily related/constrained to the activity on an origin or its content. In other words, interest groups are not well suited to model user properties that can only be computed using behavioral cross-origin data. For example, understanding if a user is male or female cannot simply be computed using data from "wereallylikeshoes.com": the group will be biased toward women and there is no way to compensate the bias by using data collected on other origins (like "wereallylovecars.com").
+Since interest groups can be computed using data of only one domain, the semantics of these groups are necessarily related/constrained to the activity on an domain or its content. In other words, interest groups are not well suited to model user properties that can only be computed using behavioral cross-domain data. For example, understanding if a user is male or female cannot simply be computed using data from "wereallylikeshoes.com": the group will be biased toward women and there is no way to compensate the bias by using data collected on other domains (like "wereallylovecars.com").
 
 # Generalization in a nutshell
 
-We propose to introduce in the browser a cross-origin "sandboxed private storage" that has very limited read capabilities. The role of the storage is to keep a profile that consists of data collected *across origins*. Then, only pre-registered scripts with a constrained signature are allowed to read this data and to output interest groups. No other read/write capabilities are allowed for these scripts. The rest remains identical to TURTLEDOVE. In the following, we use the term "audience" instead of "interest group" to better reflect the increased semantic modeling capabilities. The pre-registered script is called an audience definition script.
+We propose to introduce in the browser a cross-domain "sandboxed private storage" that has limited read capabilities. The role of the storage is to keep a profile that consists of data collected *across domains*. Then, only pre-registered scripts with a constrained signature are allowed to read this data and to output interest groups. No other read/write capabilities are allowed for these scripts. The rest remains identical to Turtledove. In the following, we use the term "audience" instead of "interest group" to better reflect the increased targeting capabilities. The pre-registered script is called an audience definition script.
 
 The following diagram gives an overview of the proposal.
 
-![overview](./overview.svg)
+<p align="center">
+  <img width="70%" height="70%" src="./overview.svg">
+</p>
 
-The main difference to TURTLEDOVE is that partial profiles are stored in the browser, not interest groups. The attribution to audiences is then performed in the browser using audience definition scripts provided by advertisers. The bidding process to select an ad web bundle is not affected by this proposal.
+The difference to Turtledove is that partial profiles (i.e. profile of one domain) are stored in the browser, not audiences (interest groups). The attribution to audiences is then performed in the browser using audience definition scripts. The bidding process to select an ad web bundle is not affected by this proposal.
 
+## Scope of the private storage
+
+As depicted in the diagram, the audience definition script only has access to the data that originates from the same party (the audience definition was registered on a domain of that party). Which domains belong to the same party are defined by the server side first-party-set declaration which is known to the browser. As explained so far, it is possible to perform targeting based on client-side first-party profiles. This is similar to the scenario where the First-part-sets and Turtledove are implemented simultaneously with the exception that the profile is server sided (assuming first-party-sets are used to implement [cross-domain first-party cookies](https://www.chromestatus.com/feature/5640066519007232)).
+
+To increase data sharing capabilities, we propose to naturally extend the first-party-set proposal to also support third-party declarations. This declaration would make it possible for an audience definition script to access third-party data in the browser only:
+
+<p align="center">
+  <img width="70%" height="70%" src="./overview2.svg">
+</p>
 
 ## API Example Flow
 
-In the following, we describe an illustrative scenario where a cross-origin profile is built in the browser as a user navigates the web.
+In the following, we describe an illustrative scenario where a cross-domain profile is built in the browser as a user anonymously navigates the web, i.e., without using a login.
 
-As I browse "wereallylikeshoes.com", the advertiser that is instrumented on a page creates a private storage instance. Based on the user behavior observed on the domain, the advertiser estimates a probability of 0.8% to be female and adds this information to the storage. Alongside the probability, my visit frequency per month is provided.
+As I anonymously browse "weReallyLoveShopping.com" my behavior reveals that I am interested in athletic shoes. The online shop writes this information in the private storage:
 
 ```javascript
-const advertiserId = ...;
-const privateStorage = navigator.getOrCreatePrivateStorage(advertiserId);
-privateStorage.appendToArray("genderEstimates", {m: 0.2, f: 0.8, w:5});
+window.privateStorage.setItem('interests', 'athletic-shoes');
 ```
 
-As I continue to browse the web, I now visit "wereallylovecars.com". The same advertiser now estimates a probability of 0.7 to be male for that origin. The visit frequency on this origin is 25 times per month. This is written into the same storage instance.
+In addition, I regularly and anonymously visit the publisher domain "myLocalNewspaper.com". The domain is not owned by the same party as "weReallyLoveShopping.com" but the latter is declared a third-party of the former. Based on the pages I read, the publisher estimates a probability of 0.8% that I am a female and writes this to the private storage:
 
 ```javascript
-privateStorage.appendToArray("genderEstimates", {m: 0.7, f: 0.3, w:25});
+window.privateStorage.setItem("femaleProb", 0.8);
 ```
 
-The advertiser always has the possibility to register audience definition scripts as follows:
+Note that `localStorage` does not provide reading capabilities at this point (i.e. the method `localStorage.getItem` is not accessible).
+
+In addition, domains always have the possibility to register audience definition scripts. In our example, the publisher registers an audience definition script as follows:
 
 ```javascript
-const maleAudience =
-  {'name': 'maleAudience',
+const femaleAthleticShoes =
+  {'name': 'femaleAthleticShoesAudience',
    'readers': ['first-ad-network.com',
                'second-ad-network.com'],
     'script': "\
-      const estimates = storage.get('genderEstimates'))\
-      const estimate = … // compute overall estimate based on partial estimates \
-    	return estimate > 0.5"
+    	return privateStorage.getItem('femaleProb') > 0.5 && privateStorage.getItem('interests' == 'athletic-shoes')"
   };
-privateStorage.addAudienceDefinition(maleAudience);
+window.privateStorage.addAudienceDefinition(femaleAthleticShoes);
 ```
 
-The audience definition scripts return a boolean value to indicated audience membership. In this example, if the script returns `true`, then the user belongs to the `maleAudience`.
+The audience definition scripts must return a boolean value to indicate audience membership and are evaluated before fetching the ad bundles. In this example, the script needs to access data that originates from two domains. But because of the declared third-party relationship and because the script is running in a sandboxed environment, both `getItem` calls return a value. Since audience definition scripts are only allowed to determine audience membership, no private information can leak from the private storage.
 
-Before requesting the ads, the browser evaluates all the registered scripts to determine audience memberships. The rest of the API flow remains as with TURTLEDOVE: the browser then contacts first-ad-network.com and requests ads targeted at this audience:
-GET https://first-ad-network.com/.well-known/fetch-ads?audience=maleAudience
+The rest of the API flow remains identical Turtledove; the browser then contacts `first-ad-network.com` and requests ads targeted at this audience:
 
-See  the TURTLEDOVE for the rest of the flow.
+```bash
+curl -X GET https://first-ad-network.com/.well-known/fetch-ads?audience=femaleAthleticShoesAudience
+```
+
+See the [Turtledove](https://github.com/WICG/turtledove) for the rest of the flow.
+
 
 ## Privacy
 
 The following design aspects shall guarantee that the browser does not leak private information:
 
-* Audiences can be defined freely by advertisers. However, as with TURTLEDOVE, browsers should devise an infrastructure to deactivate audiences that have too few users. This is to prevent micro-targeting which essentially makes tracking possible again.
+* Audiences can be defined freely by advertisers. However, as with Turtledove, browsers should devise an infrastructure to deactivate audiences that have too few users. This is to prevent micro-targeting which essentially makes tracking possible again.
 
 * The proposed private storage shall be accessed by one advertiser only to prevent malicious actors from corrupting profiles (and affecting the advertisers business). In the paragraph [API Example Flow](#api-example-flow), the storage is accessed using an advertiser ID. This needs to be improved and an authentication mechanism must be devised to control the access to the storage.
 
@@ -79,12 +92,12 @@ The following design aspects shall guarantee that the browser does not leak priv
 
 ## UI controls
 
-In addition to the browser UI controls of TURTLEDOVE, this approach would enable the following additional controls:
+In addition to the browser UI controls of Turtledove, this approach would enable the following additional controls:
 * The browser could provide a mean to see the profile data that is collected by a given advertiser. GDPR/CCPA access requests could simply amount to reading this storage using a UI control in the browser (provided the profile contains all the data collected by the advertiser).
-* The audience definition scripts could also be inspected by the user. This has the advantage that users have a mean to understand *how* they got attributed to an audience. Maybe this could be useful to discover problematic targeting practices (for example political targeting campaigns). On the other hand, we believe that advertisers have the right to keep their targeting technologies proprietary. However, this could be constrained to the partial profiles that are computed from one origin only (from first-party data, where the heavy lifting is happening).
-* The user shall be able to delete audience memberships using a UI control. This can be achieved by removing/blocking the audience definitions. In addition, advertisers can also remove audience definitions using a method `privateStorage.removeAudienceDefinition` (this is similar to TURTLEDOVE).
+* The audience definition scripts could also be inspected by the user. This has the advantage that users have a mean to understand *how* they got attributed to an audience. Maybe this could be useful to discover problematic targeting practices (for example political targeting campaigns). On the other hand, we believe that advertisers have the right to keep their targeting technologies proprietary. However, this could be constrained to the partial profiles that are computed from one domain only (from first-party data, where the heavy lifting is happening).
+* The user shall be able to delete audience memberships using a UI control. This can be achieved by removing/blocking the audience definitions. In addition, advertisers can also remove audience definitions using a method `privateStorage.removeAudienceDefinition` (this is similar to Turtledove).
 * The user shall be able to delete/block the private storage for an advertiser that he/she does not trust.
 
 ## Compatibility with other proposals
 
-This proposal generalizes TURTLEDOVE and does not conflict with the other main proposals such as [SPARROW](https://github.com/WICG/sparrow) (bidding) and the [Aggregated Reporting API](https://github.com/csharrison/aggregate-reporting-api) (that could also be used for [lookalike targeting](https://github.com/w3c/web-advertising/blob/master/privacy_preserving_lookalike_audience_targeting.md)).
+This proposal generalizes Turtledove and does not conflict with the other main proposals such as [SPARROW](https://github.com/WICG/sparrow) (bidding) and the [Aggregated Reporting API](https://github.com/csharrison/aggregate-reporting-api) (that could also be used for [lookalike targeting](https://github.com/w3c/web-advertising/blob/master/privacy_preserving_lookalike_audience_targeting.md)).
