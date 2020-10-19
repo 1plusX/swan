@@ -47,6 +47,8 @@ As with first-party sets, the browser would be aware of the relationship between
   <img width="70%" height="70%" src="./overview2.svg">
 </p>
 
+In the following, we briefly show how to programmatically use the private storage to perform targeting based on a cross-domain profile.
+
 ## API Example Flow
 
 In the following, we describe an illustrative scenario where a cross-domain profile is built in the browser as a user anonymously navigates the web, i.e., without using a login.
