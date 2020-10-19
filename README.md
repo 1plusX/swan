@@ -1,6 +1,6 @@
 # Turtledove and First-party-sets generalization
 
-We propose to generalize [Turtledove](https://github.com/WICG/turtledove) and [First-party-sets]() to enable full profile based targeting while remaining compliant with the chromium privacy model. More precisely, the goal is to be able to target users based on deterministic behavioral data collected in the browser and across domains and parties while preserving privacy.
+We propose to generalize [Turtledove](https://github.com/WICG/turtledove) and [First-party-sets](https://github.com/privacycg/first-party-sets) to enable full profile based targeting while remaining compliant with the chromium privacy model. More precisely, the goal is to be able to target users based on deterministic behavioral data collected in the browser and across domains and parties while preserving privacy.
 
 ## The capabilities of Turtledove
 In a nutshell, the Turtledove framework consists of the following steps to show a targeted ad:
@@ -14,11 +14,11 @@ From our perspective, the Turtledove approach is well suited to target users for
 * Intent based targeting (based on specific user actions) using an interest group like "hit-paywall-twice". This also includes re-targeting using an interest group like "looked-at-shoes-xyz".
 * Limited profile based targeting. Interest groups can be used to profile users using data observed on one domain only. As described in the explainer, this could be achieved using an interest group like "athletic-shoes". This proposal aims at alleviating the per-domain restriction of interest groups.
 
-Since interest groups can be computed using data of only one domain, the semantics of these groups are necessarily related/constrained to the activity on an domain or its content. In other words, interest groups are not well suited to model user properties that can only be computed using behavioral cross-domain data. For example, understanding if a user is male or female cannot simply be computed using data from "wereallylikeshoes.com": the group will be biased toward women and there is no way to compensate the bias by using data collected on other domains (like "wereallylovecars.com").
+Since interest groups can be computed using data of only one domain, the semantics of these groups are necessarily related/constrained to the activity on a domain or its content. In other words, interest groups are not well suited to model user properties that can only be computed using behavioral cross-domain data. For example, estimating if a user is male or female cannot simply be computed using data from "wereallylikeshoes.com": the group will be biased toward women and there is no way to compensate the bias by using data collected on other domains.
 
 # Generalization in a nutshell
 
-We propose to introduce in the browser a cross-domain "sandboxed private storage" that has limited read capabilities. The role of the storage is to keep a profile that consists of data collected *across domains*. Then, only pre-registered scripts with a constrained signature are allowed to read this data and to output interest groups. No other read/write capabilities are allowed for these scripts. The rest remains identical to Turtledove. In the following, we use the term "audience" instead of "interest group" to better reflect the increased targeting capabilities. The pre-registered script is called an audience definition script.
+We propose to introduce in the browser a "sandboxed private storage" that has limited read capabilities. The role of the storage is to keep a profile that consists of data collected *across domains*. Then, only pre-registered scripts with a constrained signature are allowed to read this data and to output interest groups. No other read/write capabilities are allowed for these scripts. The rest remains identical to Turtledove. In the following, we use the term "audience" instead of "interest group" to better reflect the increased targeting capabilities. The pre-registered script is called an audience definition script.
 
 The following diagram gives an overview of the proposal.
 
@@ -26,13 +26,22 @@ The following diagram gives an overview of the proposal.
   <img width="70%" height="70%" src="./overview.svg">
 </p>
 
-The difference to Turtledove is that partial profiles (i.e. profile of one domain) are stored in the browser, not audiences (interest groups). The attribution to audiences is then performed in the browser using audience definition scripts. The bidding process to select an ad web bundle is not affected by this proposal.
+The difference to Turtledove is that partial profiles (i.e. profiles of one domain) are stored in the browser, not audiences (interest groups). The bidding process of Turtledove that is used to select an ad is not affected by this proposal.
+
+Next, we discuss how the browser controls the access to partial profiles.
 
 ## Scope of the private storage
 
-As depicted in the diagram, the audience definition script only has access to the data that originates from the same party (the audience definition was registered on a domain of that party). Which domains belong to the same party are defined by the server side first-party-set declaration which is known to the browser. As explained so far, it is possible to perform targeting based on client-side first-party profiles. This is similar to the scenario where the First-part-sets and Turtledove are implemented simultaneously with the exception that the profile is server sided (assuming first-party-sets are used to implement [cross-domain first-party cookies](https://www.chromestatus.com/feature/5640066519007232)).
+As depicted in the diagram, the audience definition script only has access to the data that originates from the same party (the audience definition was registered on a domain of that party). Which domains belong to the same party are defined by the server side first-party-set declaration which is known to the browser as described in the [proposal](https://github.com/privacycg/first-party-sets#declaring-a-first-party-set). As explained so far, it is possible to perform targeting based on client-side first-party profiles. This is similar to the scenario where First-part-sets and Turtledove are implemented simultaneously with the exception that the profile is server sided (assuming first-party-sets are used to implement [cross-domain first-party cookies](https://www.chromestatus.com/feature/5640066519007232)).
 
-To increase data sharing capabilities, we propose to naturally extend the first-party-set proposal to also support third-party declarations. This declaration would make it possible for an audience definition script to access third-party data in the browser only:
+To increase data sharing capabilities, we propose to naturally extend the first-party-set proposal to also support third-party declarations. The server `c.com` would serve the following resource:
+
+```
+https://c.com/.well-known/third-party-set
+{ "owner": "a.com" }
+```
+
+As with first-party sets, the browser would be aware of the relationship between parties. This would it possible to grant the appropriate reading permissions to audience definition scripts to also access third-party data.
 
 <p align="center">
   <img width="70%" height="70%" src="./overview2.svg">
@@ -48,25 +57,26 @@ As I anonymously browse "weReallyLoveShopping.com" my behavior reveals that I am
 window.privateStorage.setItem('interests', 'athletic-shoes');
 ```
 
-In addition, I regularly and anonymously visit the publisher domain "myLocalNewspaper.com". The domain is not owned by the same party as "weReallyLoveShopping.com" but the latter is declared a third-party of the former. Based on the pages I read, the publisher estimates a probability of 0.8% that I am a female and writes this to the private storage:
+I also regularly and anonymously visit the publisher "myLocalNewspaper.com". The domain is not owned by the same party as "weReallyLoveShopping.com" but the latter is declared as a third-party of the former. Based on the pages I read, the publisher estimates a probability of 0.3% that I am a female and writes this to the private storage:
 
 ```javascript
-window.privateStorage.setItem("femaleProb", 0.8);
+window.privateStorage.setItem("femaleProb", 0.3);
 ```
 
-Note that `localStorage` does not provide reading capabilities at this point (i.e. the method `localStorage.getItem` is not accessible).
+Note that `privateStorage` does not provide reading capabilities at this point (i.e. the method `privateStorage.getItem` is not accessible).
 
 In addition, domains always have the possibility to register audience definition scripts. In our example, the publisher registers an audience definition script as follows:
 
 ```javascript
-const femaleAthleticShoes =
+const maleAthleticShoes =
   {'name': 'femaleAthleticShoesAudience',
    'readers': ['first-ad-network.com',
                'second-ad-network.com'],
     'script': "\
-    	return privateStorage.getItem('femaleProb') > 0.5 && privateStorage.getItem('interests' == 'athletic-shoes')"
+    	return privateStorage.getItem('femaleProb') < 0.5 && \
+             privateStorage.getItem('interests' == 'athletic-shoes')"
   };
-window.privateStorage.addAudienceDefinition(femaleAthleticShoes);
+window.privateStorage.addAudienceDefinition(maleAthleticShoes);
 ```
 
 The audience definition scripts must return a boolean value to indicate audience membership and are evaluated before fetching the ad bundles. In this example, the script needs to access data that originates from two domains. But because of the declared third-party relationship and because the script is running in a sandboxed environment, both `getItem` calls return a value. Since audience definition scripts are only allowed to determine audience membership, no private information can leak from the private storage.
