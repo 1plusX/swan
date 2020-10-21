@@ -1,6 +1,6 @@
-# Turtledove and First-party-sets generalization
+# Generalization of Turtledove and First-party sets
 
-We propose to generalize [Turtledove](https://github.com/WICG/turtledove) and [First-party-sets](https://github.com/privacycg/first-party-sets) to enable full profile based targeting while remaining compliant with the chromium privacy model. More precisely, the goal is to be able to target users based on deterministic behavioral data collected in the browser and across domains and parties while preserving privacy.
+We propose to generalize [Turtledove](https://github.com/WICG/turtledove) and [First-party sets](https://github.com/privacycg/first-party-sets) to enable full profile based targeting while remaining compliant with the chromium privacy model. More precisely, the goal is to be able to target users based on deterministic behavioral data collected in the browser and across domains and/or parties while preserving privacy.
 
 ## The capabilities of Turtledove
 In a nutshell, the Turtledove framework consists of the following steps to show a targeted ad:
@@ -26,13 +26,15 @@ The following diagram gives an overview of the proposal.
   <img width="70%" height="70%" src="./overview.svg">
 </p>
 
-The difference to Turtledove is that partial profiles (i.e. profiles of one domain) are stored in the browser, not audiences (interest groups). The bidding process of Turtledove that is used to select an ad is not affected by this proposal.
+The difference to Turtledove is that partial profiles (i.e. profiles of one domain) are stored in the browser, not audiences (interest groups). The Turtledove bidding process that is used to select an ad is not affected by this proposal.
 
 Next, we discuss how the browser controls the access to partial profiles.
 
-## Scope of the private storage
+## Access to the private storage
 
-As depicted in the diagram, the audience definition script only has access to the data that originates from the same party (the audience definition was registered on a domain of that party). Which domains belong to the same party are defined by the server side first-party-set declaration which is known to the browser as described in the [proposal](https://github.com/privacycg/first-party-sets#declaring-a-first-party-set). As explained so far, it is possible to perform targeting based on client-side first-party profiles. This is similar to the scenario where First-part-sets and Turtledove are implemented simultaneously with the exception that the profile is server sided (assuming first-party-sets are used to implement [cross-domain first-party cookies](https://www.chromestatus.com/feature/5640066519007232)).
+As depicted in the diagram, the audience definition script always has access to the partial profiles that originates from the same party (the audience definition was registered on a domain of that party). Which domains belong to the same party are defined by the server side first-party-set declaration which is known to the browser as described in the [proposal](https://github.com/privacycg/first-party-sets#declaring-a-first-party-set).
+
+As explained so far, it is possible to perform targeting based on client-side first-party profiles. This is similar to the scenario where First-part-sets and Turtledove are implemented simultaneously with the exception that the profile is server sided (assuming first-party-sets are used to implement [cross-domain first-party cookies](https://www.chromestatus.com/feature/5640066519007232)).
 
 To increase data sharing capabilities, we propose to naturally extend the first-party-set proposal to also support third-party declarations. The server `c.com` would serve the following resource:
 
@@ -51,7 +53,7 @@ In the following, we briefly show how to programmatically use the private storag
 
 ## API Example Flow
 
-In the following, we describe an illustrative scenario where a cross-domain profile is built in the browser as a user anonymously navigates the web, i.e., without using a login.
+We describe an illustrative scenario where a cross-domain profile is built in the browser as a user anonymously navigates the web, i.e., without using a login.
 
 As I anonymously browse "weReallyLoveShopping.com" my behavior reveals that I am interested in athletic shoes. The online shop writes this information in the private storage:
 
@@ -62,7 +64,7 @@ window.privateStorage.setItem('interests', 'athletic-shoes');
 I also regularly and anonymously visit the publisher "myLocalNewspaper.com". The domain is not owned by the same party as "weReallyLoveShopping.com" but the latter is declared as a third-party of the former. Based on the pages I read, the publisher estimates a probability of 0.3% that I am a female and writes this to the private storage:
 
 ```javascript
-window.privateStorage.setItem("femaleProb", 0.3);
+window.privateStorage.setItem('femaleProb', 0.3);
 ```
 
 Note that `privateStorage` does not provide reading capabilities at this point (i.e. the method `privateStorage.getItem` is not accessible).
