@@ -2,7 +2,7 @@
 
 We propose to generalize [Turtledove](https://github.com/WICG/turtledove) and [First-party sets](https://github.com/privacycg/first-party-sets) to enable full profile based targeting while remaining compliant with the chromium privacy model. More precisely, the goal is to be able to target users based on  behavioral data collected across domains and/or parties while making sure this data never leaves the browser.
 
-This proposal addresses the issue of restricted 3rd-party data access which is caused by the removal of the 3rd-party cookie. This is particularly problematic for the market actors that have limited first-party data.
+This proposal addresses the issue of restricted 3rd-party data access which is caused by the removal of the 3rd-party cookies. This is particularly problematic for the market actors that have limited first-party data.
 
 In the following we use the notion of "domain" and "party" as defined in the [First-party sets](https://github.com/privacycg/first-party-sets) proposal.
 
