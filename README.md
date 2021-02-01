@@ -1,6 +1,10 @@
 # Generalization of Turtledove and First-party sets
 
-We propose to generalize [Turtledove](https://github.com/WICG/turtledove) and [First-party sets](https://github.com/privacycg/first-party-sets) to enable full profile based targeting while remaining compliant with the chromium privacy model. More precisely, the goal is to be able to target users based on deterministic behavioral data collected in the browser and across domains and/or parties while preserving privacy.
+We propose to generalize [Turtledove](https://github.com/WICG/turtledove) and [First-party sets](https://github.com/privacycg/first-party-sets) to enable full profile based targeting while remaining compliant with the chromium privacy model. More precisely, the goal is to be able to target users based on  behavioral data collected across domains and/or parties while making sure this data never leaves the browser.
+
+This proposal addresses the issue of restricted 3rd-party data access which is caused by the removal of the 3rd-party cookie. This is particularly problematic for the market actors that have limited first-party data.
+
+In the following we use the notion of "domain" and "party" as defined in the [First-party sets](https://github.com/privacycg/first-party-sets) proposal.
 
 ## The capabilities of Turtledove
 In a nutshell, the Turtledove framework consists of the following steps to show a targeted ad:
@@ -69,7 +73,7 @@ window.privateStorage.setItem('femaleProb', 0.3);
 
 Note that `privateStorage` does not provide reading capabilities at this point (i.e. the method `privateStorage.getItem` is not accessible).
 
-In addition, domains always have the possibility to register audience definition scripts. In our example, the publisher registers an audience definition script as follows:
+In addition, domain owners always have the possibility to register audience definition scripts. In our example, the publisher registers an audience definition script as follows:
 
 ```javascript
 const maleAthleticShoes =
@@ -78,7 +82,7 @@ const maleAthleticShoes =
                'second-ad-network.com'],
     'script': "\
     	return privateStorage.getItem('femaleProb') < 0.5 && \
-             privateStorage.getItem('interests' == 'athletic-shoes')"
+             privateStorage.getItem('interests') == 'athletic-shoes')"
   };
 window.privateStorage.addAudienceDefinition(maleAthleticShoes);
 ```
@@ -96,22 +100,31 @@ See the [Turtledove](https://github.com/WICG/turtledove) for the rest of the flo
 
 ## Privacy
 
-The following design aspects shall guarantee that the browser does not leak private information:
+The following design aspects shall guarantee that the browser does not leak private data:
 
-* Audiences can be defined freely by advertisers. However, as with Turtledove, browsers should devise an infrastructure to deactivate audiences that have too few users. This is to prevent micro-targeting which essentially makes tracking possible again.
+* Only audience definition scripts are allowed to read the content of the storage. A script is only allowed to return booleans which guarantees that no private data can leak.
 
-* The proposed private storage shall be accessed by one advertiser only to prevent malicious actors from corrupting profiles (and affecting the advertisers business). In the paragraph [API Example Flow](#api-example-flow), the storage is accessed using an advertiser ID. This needs to be improved and an authentication mechanism must be devised to control the access to the storage.
+* The audience definition scripts are associated to their originating domains. A script has access to profile data of another domain (resp. party) provided there is a first-party (resp. third-party) relationship between the domains (resp. parties). In addition, this access can be blocked by the user using the appropriate control (see below). In this case, the method `getItem` shall return `null`.
 
-* Only audience definition scripts are allowed to read the content of the storage (for example, one could imagine a separate javascript runtime per storage). The script is only allowed to return booleans which guarantees that no private data can leak.
+* As with Turtledove, audiences (and the associated definition scripts) that have too few users shall be disabled by the browser. This is to prevent micro-targeting which essentially makes tracking possible again.
+
 
 ## UI controls
 
 In addition to the browser UI controls of Turtledove, this approach would enable the following additional controls:
-* The browser could provide a mean to see the profile data that is collected by a given advertiser. GDPR/CCPA access requests could simply amount to reading this storage using a UI control in the browser (provided the profile contains all the data collected by the advertiser).
-* The audience definition scripts could also be inspected by the user. This has the advantage that users have a mean to understand *how* they got attributed to an audience. Maybe this could be useful to discover problematic targeting practices (for example political targeting campaigns). On the other hand, we believe that advertisers have the right to keep their targeting technologies proprietary. However, this could be constrained to the partial profiles that are computed from one domain only (from first-party data, where the heavy lifting is happening).
-* The user shall be able to delete audience memberships using a UI control. This can be achieved by removing/blocking the audience definitions. In addition, advertisers can also remove audience definitions using a method `privateStorage.removeAudienceDefinition` (this is similar to Turtledove).
+* The browser shall provide a mean to see the profile data that is collected. In this way, GDPR/CCPA access requests simply amount to reading this storage using a UI control in the browser (provided the profile contains all the relevant data collected).
+* The user shall be able to delete audience memberships using a UI control. This can be achieved by removing/blocking the audience definitions. In addition, domain owners can also remove audience definitions using a method `privateStorage.removeAudienceDefinition` (this is similar to Turtledove).
 * The user shall be able to delete/block the private storage for an advertiser that he/she does not trust.
+* The user shall be able to block access to third-party data. The browser could provide a central configuration panel that shows the third-party associations between parties with the possibility to block them. For stricter privacy configurations, the browser could prompt for consent upon the first call to a third-party item using `getItem`.
 
-## Compatibility with other proposals
 
-This proposal generalizes Turtledove and does not conflict with the other main proposals such as [SPARROW](https://github.com/WICG/sparrow) (bidding) and the [Aggregated Reporting API](https://github.com/csharrison/aggregate-reporting-api) (that could also be used for [lookalike targeting](https://github.com/w3c/web-advertising/blob/master/privacy_preserving_lookalike_audience_targeting.md)).
+## Other design considerations
+
+* The signature of the private storage is inspired by the signature of the existing [local and sessions storages](https://developer.mozilla.org/en-US/docs/Web/API/Storage). To avoid naming collisions on the items of the `privateStorage`, a namespace string parameter shall be added to the signature of the `getItem` method to specify the domain that owns the data. The other methods `setItem`, `removeItem`, `clear` shall implicitly use the domain of the current context and shall not be available in to the audience definitions scripts.
+* Third-party data providers very likely need to understand the usage of their data (e.g. to charge the first-party accordingly). Our proposal is to use the [Aggregated Reporting API](https://github.com/csharrison/aggregate-reporting-api) to count the `getItem` calls or the number of users accessing a given item.
+
+## Related work and impact on other proposals
+
+This proposal generalizes [Turtledove](https://github.com/WICG/turtledove) and extends the [First-party sets](https://github.com/privacycg/first-party-sets) proposal. In addition, it slightly affects the [SCAUP proposal](https://github.com/google/ads-privacy/blob/master/proposals/scaup/README.md) as explained next.
+* The proposal requires feature vectors that are stored in the browser in a read-only mode. The private storage presented in this proposal could be used exactly for this purpose.
+* The proposal outlines the creation of a profile that is similar to the notion of profile presented here but without specifying its domain and/or party scope. This proposal addresses this issue by clearly separating first-party features from third-party features (items in this proposal).
