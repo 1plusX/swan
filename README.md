@@ -47,14 +47,18 @@ As depicted in the diagram, the audience definition script always has access to 
 
 As explained so far, it is possible to perform targeting based on client-side first-party profiles. This is similar to the scenario where First-part-sets and Turtledove are implemented simultaneously with the exception that the profile is server sided (assuming first-party-sets are used to implement [cross-domain first-party cookies](https://www.chromestatus.com/feature/5640066519007232)).
 
-To increase data sharing capabilities, we propose to naturally extend the first-party-set proposal to also support third-party declarations. With this extension, the server `c.com` shall serve the following resource:
+To increase data sharing capabilities, we propose to naturally extend the first-party-set proposal to also support third-party declarations. Similarly to first-party sets that enable browsers to understand the first-party relationships between domains, third-party sets enable browser to understand relationships between parties. With this extension, the domain `c.com` shall be able to serve the following resource
 
 ```
 https://c.com/.well-known/third-party-set
-{ "owner": "a.com" }
+{
+  "owner": "c.com",
+  "version": 1,
+  "members": ["a.com"]
+}
 ```
 
-Similarly to first-party sets that enable browsers to understand the first-party relationships between domains, third-party sets enable browser to understand relationships between parties. This makes it possible to grant the appropriate reading permissions to audience definition scripts to also access third-party data as depicted in the following diagram:
+where `a.com` and `c.com` are owner of their respective first-party set as defined in the [proposal](https://github.com/privacycg/first-party-sets#declaring-a-first-party-set). In the context of this proposal, this makes it possible to grant the appropriate reading permissions to audience definition scripts to also access third-party items stored in the private storage. This is depicted in the following diagram:
 
 <p align="center">
   <img width="70%" height="70%" src="./overview2.svg">
