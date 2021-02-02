@@ -37,9 +37,9 @@ The following diagram gives an overview of the proposal.
   <img width="70%" height="70%" src="./overview.svg">
 </p>
 
-The difference to Turtledove is that partial profiles (i.e. profiles of one domain) are stored in the browser, not audiences (interest groups). The Turtledove bidding process that is used to select an ad is not affected by this proposal.
+The difference to Turtledove is that partial profiles are registered in the browser, not audiences (interest groups). Instead, the audience memberships are computed directly in the browser. One partial profile consists of several items/attributes that are collected on one domain only.
 
-Next, we discuss how the browser controls the access to partial profiles.
+The Turtledove bidding process that is used to select an ad is not affected by this proposal. Next, we discuss how the browser controls the access to partial profiles and their items.
 
 ## Access to the private storage
 
@@ -130,6 +130,12 @@ The following design aspects shall guarantee that the browser does not leak priv
 
 * As with Turtledove, audiences (and the associated definition scripts) that have too few users shall be disabled by the browser. This is to prevent micro-targeting which essentially makes tracking possible again.
 
+## Other design considerations
+
+* The signature of the private storage is inspired by the signature of the existing [local and sessions storages](https://developer.mozilla.org/en-US/docs/Web/API/Storage). To avoid naming collisions on the items of the `privateStorage`, a namespace string parameter shall be added to the signature of the `getItem` method to specify the domain that owns the data. The other methods `setItem`, `removeItem`, `clear` shall implicitly use the domain of the current context and shall not be available in to the audience definitions scripts.
+
+* Third-party data providers very likely need to understand the usage of their data (e.g. to charge the first-party accordingly). Our proposal is to use the [Aggregated Reporting API](https://github.com/csharrison/aggregate-reporting-api) to count the calls to `getItem`  or the number of users accessing a given item.
+
 
 ## UI controls
 
@@ -144,14 +150,11 @@ In addition to the browser UI controls of Turtledove, this approach would enable
 * The user shall be able to block access to third-party data. The browser could provide a central configuration panel that shows the third-party associations between parties with the possibility to block them. For stricter privacy configurations, the browser could prompt for consent upon the first access to a third-party item using `getItem`.
 
 
-## Other design considerations
-
-* The signature of the private storage is inspired by the signature of the existing [local and sessions storages](https://developer.mozilla.org/en-US/docs/Web/API/Storage). To avoid naming collisions on the items of the `privateStorage`, a namespace string parameter shall be added to the signature of the `getItem` method to specify the domain that owns the data. The other methods `setItem`, `removeItem`, `clear` shall implicitly use the domain of the current context and shall not be available in to the audience definitions scripts.
-
-* Third-party data providers very likely need to understand the usage of their data (e.g. to charge the first-party accordingly). Our proposal is to use the [Aggregated Reporting API](https://github.com/csharrison/aggregate-reporting-api) to count the calls to `getItem`  or the number of users accessing a given item.
 
 ## Related work and impact on other proposals
 
 This proposal generalizes [Turtledove](https://github.com/WICG/turtledove) and extends the [First-party sets](https://github.com/privacycg/first-party-sets) proposal. In addition, it affects the [SCAUP proposal](https://github.com/google/ads-privacy/blob/master/proposals/scaup/README.md) as explained next.
 * The proposal introduces feature vectors that are stored in the browser in a write-only mode. The private storage presented in this proposal could be used exactly for this purpose. Full read-access to the profile shall be provided only to the process converting the data into opaque secret shares before they are sent to the MPC servers.
 * The proposal outlines the creation of a profile without specifying its domain and/or party scope. This proposal addresses this issue by introducing a similar notion of profile that clearly differentiates between first-party and third-party features (called items in this proposal).
+* The features vectors in the proposal are namespaced by ATP (Ad-Tech-Provider). In contrast, we suggest to namespace the features by domain.
+* The proposal introduces the possibility for ATPs to register javascript aggregation functions that could also be applied before the audience definition scrips are called.
