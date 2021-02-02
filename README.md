@@ -2,6 +2,10 @@
 
 ![Image of a Madeira laurel pigeon from Wikipedia](https://upload.wikimedia.org/wikipedia/commons/f/f5/Trocaz_Pigeon_Madeira.jpg)
 
+<p align="center">
+  <img width="70%" height="70%" src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Trocaz_Pigeon_Madeira.jpg/640px-Trocaz_Pigeon_Madeira.jpg">
+</p>
+
 *[Image of a Madeira laurel pigeon from Wikipedia](https://en.wikipedia.org/wiki/Trocaz_pigeon)*
 
 We propose to generalize [Turtledove](https://github.com/WICG/turtledove) and [First-party sets](https://github.com/privacycg/first-party-sets) to enable full profile based targeting while remaining compliant with the chromium privacy model. More precisely, the goal is to be able to target users based on  behavioral data collected across domains and/or parties while making sure this data never leaves the browser.
