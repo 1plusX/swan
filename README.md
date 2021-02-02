@@ -1,4 +1,4 @@
-# Generalization of Turtledove and First-party sets
+# Profiles In Guarded EnvirONments (PIGEON)
 
 We propose to generalize [Turtledove](https://github.com/WICG/turtledove) and [First-party sets](https://github.com/privacycg/first-party-sets) to enable full profile based targeting while remaining compliant with the chromium privacy model. More precisely, the goal is to be able to target users based on  behavioral data collected across domains and/or parties while making sure this data never leaves the browser.
 
