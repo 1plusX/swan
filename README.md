@@ -2,7 +2,7 @@
 
 <p align="center">
   <img width="70%" height="70%" src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Trocaz_Pigeon_Madeira.jpg/640px-Trocaz_Pigeon_Madeira.jpg">
-  *[Image of a Madeira laurel pigeon from Wikipedia](https://en.wikipedia.org/wiki/Trocaz_pigeon)*
+  <a href="https://en.wikipedia.org/wiki/Trocaz_pigeon">Image of a Madeira laurel pigeon from Wikipedia</a>
 </p>
 
 
