@@ -1,9 +1,7 @@
 # Profiles In Guarded EnvirONments (PIGEON)
 
-![Image of a Madeira laurel pigeon from Wikipedia](https://upload.wikimedia.org/wikipedia/commons/f/f5/Trocaz_Pigeon_Madeira.jpg)
-
 <p align="center">
-  <img width="70%" height="70%" src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Trocaz_Pigeon_Madeira.jpg/640px-Trocaz_Pigeon_Madeira.jpg">
+  <img  src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Trocaz_Pigeon_Madeira.jpg/640px-Trocaz_Pigeon_Madeira.jpg">
 </p>
 
 *[Image of a Madeira laurel pigeon from Wikipedia](https://en.wikipedia.org/wiki/Trocaz_pigeon)*
