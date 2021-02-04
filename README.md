@@ -1,5 +1,5 @@
 # Storage With Access Negotiation (SWAN)
-(uholding privacy too)
+(upholding privacy too)
 
 <p align="center">
   <img width="60%" height="60%" src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/CygneVaires.jpg/640px-CygneVaires.jpg"><br>
