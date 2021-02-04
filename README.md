@@ -1,8 +1,8 @@
-# Profiles In Guarded EnvirONments (PIGEON)
+# Storage With Access Negotiation (SWAN)
 
 <p align="center">
-  <img width="70%" height="70%" src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Trocaz_Pigeon_Madeira.jpg/640px-Trocaz_Pigeon_Madeira.jpg"><br>
-  <a href="https://en.wikipedia.org/wiki/Trocaz_pigeon">Image of a Madeira laurel pigeon from Wikipedia</a>
+  <img width="70%" height="70%" src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/CygneVaires.jpg/640px-CygneVaires.jpg"><br>
+  <a href="https://en.wikipedia.org/wiki/Swan">Image of a Swan from Wikipedia</a>
 </p>
 
 
