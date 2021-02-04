@@ -1,7 +1,7 @@
 # Storage With Access Negotiation (SWAN)
 
 <p align="center">
-  <img width="70%" height="70%" src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/CygneVaires.jpg/640px-CygneVaires.jpg"><br>
+  <img width="60%" height="60%" src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/CygneVaires.jpg/640px-CygneVaires.jpg"><br>
   <a href="https://en.wikipedia.org/wiki/Swan">Image of a Swan from Wikipedia</a>
 </p>
 
