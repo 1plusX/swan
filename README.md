@@ -1,5 +1,5 @@
 # Storage With Access Negotiation (SWAN)
-(upholding privacy too)
+(yet another bird upholding privacy)
 
 <p align="center">
   <img width="60%" height="60%" src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/CygneVaires.jpg/640px-CygneVaires.jpg"><br>
