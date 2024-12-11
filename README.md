@@ -1,3 +1,4 @@
+# [ARCHIVED]
 # Storage With Access Negotiation (SWAN)
 (yet another bird upholding privacy)
 
